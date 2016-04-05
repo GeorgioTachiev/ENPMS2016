@@ -30,7 +30,7 @@ MATFILE = [INI.DATADIR N '.MATLAB'];
 % else load the MATLAB for faster
 if INI.OVERWRITE_MON_PTS | ~exist(MATFILE,'file')
     % read monitoring points from excel file, slower process
-    INI.MAPXLS = readXLSmonpts(0,INI,INI.STATION_DATA,0);
+    INI.MAPXLS = readXLSmonpts(INI);
     %save the file in a structure for reading
     fprintf('\n--- Saving Monitoring Points data in file: %s\n', char(MATFILE))
     MAPXLS = INI.MAPXLS
