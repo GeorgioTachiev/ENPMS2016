@@ -66,7 +66,9 @@ for M = STATIONS_LIST  % this uses only the list of the selected stations
             end
             MAP_ALL_DATA(char(M)) = STATION; % modify the value for this key
         catch
-            fprintf('\n...%d No observations, skipping station: %s', i, char(STATION.NAME));
+            if ~isKey(INI.NO_OBS_STATIONS.MAP,char(STATION.NAME))
+                fprintf('\n...%d No observations, skipping station: %s', i, char(STATION.NAME));
+            end
         end
     catch
         fprintf('\n...%d\t Cannot find %s in MAP_ALL_DATA container', i, char(M));
