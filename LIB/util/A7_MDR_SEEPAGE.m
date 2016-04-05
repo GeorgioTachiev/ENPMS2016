@@ -1,4 +1,5 @@
 function [] = A7_MDR_SEEPAGE(INI)
+fprintf('\n\n Beginning A7_MDR_SEEPAGE(): %s \n\n',datestr(now));
 
 
 %this function can be used as a template of reading seepage values using

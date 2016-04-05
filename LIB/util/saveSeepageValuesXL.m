@@ -6,11 +6,14 @@ function saveSeepageValuesXL(VU_DFS3,INI,TV_STR)
 %H = [H, 'TOTAL'];
 i = 0;
 
+if ~exist(INI.fileXL, 'file')
+    fprintf('%s does not exist - will create new file...', INI.fileXL);
+end
 for D = INI.MODEL_ALL_RUNS
     i = i+1;
     %RUN = INI.RUN
     H = VU_DFS3(:,:,i);
-    xlswrite(char(INI.fileXL),cellstr(TV_STR),char(D),'A3');
+    xlswrite(char(INI.fileXL),cellstr(TV_STR),char(D),'A3'); % gives warning if xls doesn't already exist
     xlswrite(char(INI.fileXL),H,char(D),'B3');
 end
 % A=size(ARRAY_XL);

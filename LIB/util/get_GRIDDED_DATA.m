@@ -1,4 +1,4 @@
-function [MAP_COMPUTED_GROUPS] = get_GRIDDED_DATA(FILE_DFS, INI)
+function [MAP_COMPUTED_GROUPS] = get_GRIDDED_DATA(FILE_DFS, INI, FILE_DIR, FILE_NAME_GROUP_DEFS, FILE_SHEETNAME, FILE_TAG)
 
 
 %  UNDER CONSTRUCTION
@@ -51,10 +51,6 @@ FT2M = 0.3048;
 CFS2M3 = (0.3048^3);
 CellAreaFt = (400/FT2M)^2;
 
-FILE_DIR =  INI.CELL_DEF_FILE_DIR_3DSZQ;
-FILE_NAME_GROUP_DEFS = INI.CELL_DEF_FILE_NAME_3DSZQ;
-FILE_SHEETNAME = INI.CELL_DEF_FILE_SHEETNAME_3DSZQ;
-
 % for z-direction flow in mm/day, converted to cubic feet per second integrated over cell face:
 MMperDYToFT3perSperCell = (0.001/FT2M)*CellAreaFt/86400;
 
@@ -85,7 +81,7 @@ end
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 
-XLARRAY = load_XL_GRID(INI);
+XLARRAY = load_XL_GRID(INI, FILE_DIR, FILE_NAME_GROUP_DEFS, FILE_SHEETNAME, FILE_TAG);
 
 % Assign each vector to corresponding array column
 MyRequestedStnNames=XLARRAY(:,1);
@@ -111,7 +107,6 @@ TS.S = get_TS_GRID(FILE_DFS);
 % map item names from Excel spreadsheet to item numbers in dfs file
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%  LEFT OFF HERE 2015-12-08  keb
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % set up dates, times, etc
@@ -155,8 +150,14 @@ if DFS2
     % Assumes 2d array.
     for tstep=0:NumDfsSteps-1
         ds = datestr(DfsTimeVector(tstep+1,:));
-        fprintf('... Step %i%s%i:: %s :: reading: %s%s\n',...
-             tstep+1, '/', NumDfsSteps-1, ds, char(FNAME), char(MyFileExtension))
+        if mod(tstep-1,10) == 0
+            fprintf('.');
+        end
+        if mod(tstep-1,366) == 0
+            fprintf('\n... now on step %i%s%i:: %s ::and counting',tstep+1, '/', NumDfsSteps-1, ds);
+        end
+        %fprintf('... Step %i%s%i:: %s :: reading: %s%s\n',...
+        %     tstep+1, '/', NumDfsSteps-1, ds, char(FNAME), char(MyFileExtension))
         for i = 1:NumItemsInFile
             Fx{i} = double(TS.S.myDfs.ReadItemTimeStep(i,tstep).To2DArray());
         end
@@ -174,8 +175,14 @@ if DFS3
     % Assumes 3d array.
     for tstep=0:NumDfsSteps-1
         ds = datestr(DfsTimeVector(tstep+1,:));
-        fprintf('... Step %i%s%i:: %s :: reading: %s%s\n',...
-             tstep+1, '/', NumDfsSteps-1, ds, char(FNAME), char(MyFileExtension))
+        if mod(tstep-1,10) == 0
+            fprintf('.');
+        end
+        if mod(tstep-1,366) == 0
+            fprintf('\n... now on step %i%s%i:: %s ::and counting',tstep+1, '/', NumDfsSteps-1, ds);
+        end
+        %fprintf('... Step %i%s%i:: %s :: reading: %s%s\n',...
+        %     tstep+1, '/', NumDfsSteps-1, ds, char(FNAME), char(MyFileExtension))
         for i = 1:NumItemsInFile
             Fx{i} = double(TS.S.myDfs.ReadItemTimeStep(i,tstep).To3DArray());
         end
@@ -252,7 +259,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 ds  = datestr(clock);
-fprintf('%s:: Grouping extracted seepage values from %s\n',ds, char(FNAME));
+fprintf('\n%s:: Grouping extracted seepage values from %s\n',ds, char(FNAME));
 ARRAY_GROUPS = sum_ARRAY_GROUPS(TS.ValueMatrix,MyRequestedStnNames);
 TV = TS.TIMEVECS(:,1:3);
 DATA = [TV ARRAY_GROUPS];
@@ -456,35 +463,36 @@ end
 
 end
 
-function XLARRAY = load_XL_GRID(INI)
+function XLARRAY = load_XL_GRID(INI, FILE_DIR, FILE_NAME_GROUP_DEFS, FILE_SHEETNAME, FILE_TAG)
 
-FILE_DIR =  INI.CELL_DEF_FILE_DIR_3DSZQ;
-FILE_NAME_GROUP_DEFS = INI.CELL_DEF_FILE_NAME_3DSZQ;
-FILE_SHEETNAME = INI.CELL_DEF_FILE_SHEETNAME_3DSZQ;
+% FILE_DIR =  INI.CELL_DEF_FILE_DIR_3DSZQ;
+% FILE_NAME_GROUP_DEFS = INI.CELL_DEF_FILE_NAME_3DSZQ;
+% FILE_SHEETNAME = INI.CELL_DEF_FILE_SHEETNAME_3DSZQ;
 
 FILE_XL_GRID = [ FILE_DIR FILE_NAME_GROUP_DEFS '.xlsx'];
-MATFILE = [ FILE_DIR FILE_NAME_GROUP_DEFS '.MATLAB'];
+MATFILE = [ FILE_DIR FILE_NAME_GROUP_DEFS '_' FILE_TAG '.MATLAB'];
 
 try
 % if there there is an existing MATLAB file read read XL file
 % if the user specifies this file to be regenerated read XL file
 % else load the MATLAB for faster
 
-if INI.OVERWRITE_GRID_XL | ~exist(MATFILE,'file')
+%if INI.OVERWRITE_GRID_XL | ~exist(MATFILE,'file')
         % read monitoring points from excel file, slower process
         XLARRAY = read_XL_GRID(FILE_XL_GRID,FILE_SHEETNAME);
-        %save the file in a structure for reading
-        fprintf('\n--- Saving Gridded XL data in: %s\n', char(MATFILE))
+%        %save the file in a structure for reading
+%        fprintf('\n--- Saving Gridded XL data in: %s\n', char(MATFILE))
         MAPXLS = INI.MAPXLS
-        save(MATFILE,'XLARRAY','-v7.3');
-    else
-        % load Monitoring point data from MATLAB for faster processing
-        fprintf('\n--- Loading Gridded XL data from: %s\n', char(MATFILE))
-        load(MATFILE, '-mat');
-    end
+%        save(MATFILE,'XLARRAY','-v7.3');
+%    else
+%        % load Monitoring point data from MATLAB for faster processing
+%        fprintf('\n--- Loading Gridded XL data from: %s\n', char(MATFILE))
+%        load(MATFILE, '-mat');
+%    end
 catch
-    fprintf('... Exception in load_XL_GRIDDED(), %s .xlsx and .MATLAB files missing \n', ...
-        char(FILE_NAME_GROUP_DEFS));
+%    fprintf('... Exception in load_XL_GRIDDED(), %s .xlsx and .MATLAB files missing \n', ...
+    fprintf('... Exception in load_XL_GRIDDED(), %s .xlsx file missing \n', ...
+    char(FILE_NAME_GROUP_DEFS));
 end
 
 end

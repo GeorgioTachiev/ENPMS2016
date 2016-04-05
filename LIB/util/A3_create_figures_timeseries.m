@@ -29,13 +29,13 @@ STATIONS_LIST = INI.SELECTED_STATIONS.list.stat;
 i = 1;
 for M = STATIONS_LIST
     %    pause(0.01)
-    fprintf('...%d processing timeseries plot: %s\n', i, char(M))
+    fprintf('\n...%d processing timeseries plot: %s', i, char(M))
     try
         STATION = MAP_ALL_DATA(char(M));  %get a tmp structure, modify values
-        
+
         plot_timeseries(STATION,INI); % comment to plot only accumulated
     catch
-        fprintf(' --> ...WARNING: A3: exception in plot_timeseries(%s) STATION.NAME not present in MAP_ALL_DATA\n', char(M))
+        fprintf(' --> ...WARNING: A3: exception in plot_timeseries(%s) STATION.NAME not present in MAP_ALL_DATA', char(M))
     end
     try
         if strcmp(STATION.DFSTYPE,'Discharge') | ...
@@ -44,7 +44,6 @@ for M = STATIONS_LIST
                 strcmp(STATION.DFSTYPE,'groundwater flow in x-direction') | ...
                 strcmp(STATION.DFSTYPE,'groundwater flow in y-direction') | ...
                 strcmp(STATION.DFSTYPE,'groundwater flow in z-direction')
-            fprintf('... Accumulated timeseries plot: %s\n',   char(M))
             plot_timeseries_accumulated(STATION,INI);
         end
         %       fprintf('\n')
@@ -52,7 +51,7 @@ for M = STATIONS_LIST
         fprintf(' --> ...WARNING: A3: exception in plot_timeseries_accumulated(%s)\n', char(M))
     end
     i = i + 1;
-    
+
 end
 
 end

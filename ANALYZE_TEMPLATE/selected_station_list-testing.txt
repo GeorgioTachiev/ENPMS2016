@@ -1,0 +1,20 @@
+Stations from file: selected-tation-list-testing.
+subsection AGroup
+#COMMENT LINE
+ANGELS
+NE1_OL
+NE1_L1
+NE1
+NE1_L3
+3A28-EAST_OL
+S331P_Q
+S331S_Q
+C110CULV_HW
+C110CULV_Q
+#COMMENT LINE
+T17-OL
+L31N-middle
+L31N-upper-SZunderRIV
+L31N-upper-Wside-SZ2RIV
+C111-OL
+END
