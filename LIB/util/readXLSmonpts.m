@@ -1,4 +1,4 @@
-function [MAP_ALL] = readXLSmonpts(MAKETEXTFILE,INI,xlfile2,outfiles)
+function [MAP_ALL] = readXLSmonpts(INI)
 % read monpts MikeSHE and M11 xls file,
 %  for import to the mikeshe storing of results setup option
 %  for use in creating dfso from txt files
@@ -23,24 +23,16 @@ function [MAP_ALL] = readXLSmonpts(MAKETEXTFILE,INI,xlfile2,outfiles)
 % where data was entered then deleted vs cells where there was never any data entered.
 %%%%%%%%%%%
 
-% Create the text file for 'detailed timeseries input'
 % always returns the structure with the MAP container
-if (~exist('MAKETEXTFILE','var')), MAKETEXTFILE = 0; end
-%output file
-if (~exist('printname','var')),printMSHEname = [INI.MATDIR 'DATASTRUCTURES/detTSmsheALL.txt']; end
 xlsMSHE = 'monpts';
 xlsMSHEadd = 'monptsadd';
-dfs0MSHEdir=[INI.PATHDIR 'DHIMODEL/INPUTFILES/MSHE/TIMESERIES/'];
-dfs0MSHEdpthdir= [INI.PATHDIR 'DHIMODEL/INPUTFILES/MSHE/TSDEPTH/'];
-if (~exist('printname','var')),printM11name = [INI.MATDIR 'DATASTRUCTURES/detTSm11ALL.txt']; end
 xlsM11 = 'M11';
 xlsM11add = 'M11add';
-dfs0M11dir=[INI.PATHDIR 'INPUTFILES/M11/TIMESERIES/'];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%% Do the MSHE %%%%%%%%%%%%%%%%%%%%%%%%%
 % read the main MSHE sheet of stations
-[~,~,xldata] = xlsread(xlfile2,xlsMSHE);
+[~,~,xldata] = xlsread(INI.STATION_DATA,xlsMSHE);
 [numrows,~] = size(xldata);
 stat= xldata(2:numrows,1);
 utmx = xldata(2:numrows,2);
@@ -72,7 +64,7 @@ for i = 1:numrows-1
 end
 
 % read the additional monpts
-[~,~,xldata] = xlsread(xlfile2,xlsMSHEadd);
+[~,~,xldata] = xlsread(INI.STATION_DATA,xlsMSHEadd);
 [numrowsadd,~] = size(xldata);
 if (numrowsadd > 1)
     stat= xldata(2:numrowsadd,1);
@@ -101,13 +93,14 @@ if (numrowsadd > 1)
         %     fprintf (fidg,'%s,%7.1f,%8.1f\n', char(stat(i)),char(stat(i)),cell2mat(utmx(i)), cell2mat(utmy(i)));
     end
 end
-%Save MSHE monitoring points
-MAP_statMSHE = containers.Map(MAP_KEY, MAP_VALUE);
+
+% assign return variable
+MAP_ALL.MSHE = containers.Map(MAP_KEY, MAP_VALUE);
 
 % fclose(fidg);
 %%%%%%%%%%%%%%%%%  Do the M11  %%%%%%%%%%%%%%%%%%
 
-[~,~,xldata] = xlsread(xlfile2,xlsM11);
+[~,~,xldata] = xlsread(INI.STATION_DATA,xlsM11);
 [numrows,~] = size(xldata);
 selstat= xldata(2:numrows,1);
 %0= water level; 1= discharge
@@ -134,7 +127,7 @@ for i = 1:numrows-1
     %fprintf('%s\n', char(selstat(i)));
 end
 
-[~,~,xldata] = xlsread(xlfile2,xlsM11add);
+[~,~,xldata] = xlsread(INI.STATION_DATA,xlsM11add);
 [numrowsadd,~] = size(xldata);
 if (numrowsadd > 1)
     selstat= xldata(2:numrowsadd,1);
@@ -146,7 +139,7 @@ if (numrowsadd > 1)
     utmx = xldata(2:numrowsadd,6);
     utmy = xldata(2:numrowsadd,7);
     angledir = xldata(2:numrowsadd,8);
-    
+
     % create a container of the selected stations
     for i = 1:numrowsadd-1
         MAP_KE(numrows-1+i) = selstat(i);
@@ -161,19 +154,27 @@ if (numrowsadd > 1)
         MAP_VALU(numrows-1+i) = {DATA1(numrows-1+i)};
     end
 end
-MAP_statM11 = containers.Map(MAP_KE, MAP_VALU);
+
+% assign return variable
+MAP_ALL.M11 = containers.Map(MAP_KE, MAP_VALU);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%% Do the GIS Locomotion %%%%%%%%%%%%%%%%%%
+% Create the text file for 'detailed timeseries input'
 
-if MAKETEXTFILE
-    %output to printfile
-    fidp=fopen(char(printMSHEname),'w');
-    K = keys(MAP_statMSHE);
+
+if INI.MakeDetTSInputFiles
+
+    fidp=fopen(char(INI.printMSHEname),'w'); %keb
+    K = keys(MAP_ALL.MSHE);
     i=1;
     for k = K
-        seldat = MAP_statMSHE(char(k));
+        seldat = MAP_ALL.MSHE(char(k));
         useobs = 1;
-        filenm = [dfs0MSHEdir seldat.filename{:}];
+        filenm = [INI.dfs0MSHEdir seldat.filename{:}];
         if (strcmp(seldat.filename{:}, 'none'))
             useobs = 0;
             filenm = 'none';
@@ -183,23 +184,22 @@ if MAKETEXTFILE
             useobs = 0;
             filenm = 'none';
         end
-        
+
         if(regexp(char(k),'dpth'))
-            filenm = [dfs0MSHEdpthdir  seldat.filename{:}];
+            filenm = [INI.dfs0MSHEdpthdir  seldat.filename{:}];
         end
         fprintf(fidp, '%s\t%d\t1\t%8.1f\t%8.1f\t%6.1f\t%d\t%s\t1\n', char(k),seldat.code{:},seldat.utmx{:},seldat.utmy{:},seldat.depth{:},useobs,filenm);
         i=i+1;
     end
     fclose(fidp);
-    
-    %output to printfile
-    fidp=fopen(char(printM11name),'w');
-    K = keys(MAP_statM11);
+
+    fidp=fopen(char(INI.printM11name),'w');
+    K = keys(MAP_ALL.M11);
     i=1;
     for k = K
-        seldat = MAP_statM11(char(k));
+        seldat = MAP_ALL.M11(char(k));
         useobs = 1;
-        filenm = [dfs0M11dir seldat.filename11{:}];
+        filenm = [INI.dfs0M11dir seldat.filename11{:}];
         if (strcmp(seldat.filename11{:}, 'none'))
             useobs = 0;
             filenm = 'none';
@@ -214,9 +214,9 @@ if MAKETEXTFILE
     fclose(fidp);
 end
 
-MAP_ALL.MSHE = MAP_statMSHE;
-MAP_ALL.M11 = MAP_statM11;
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 end
 
