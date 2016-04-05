@@ -74,8 +74,9 @@ for k = K
                 DATA_ALL(ii).Z_SURVEY = -1.0e-35;
             end
         else
-            fprintf('... MISSING OBSERVED DATA for station: %s\n', char(k));
-            
+            if ~isKey(INI.NO_OBS_STATIONS.MAP,char(k))
+                fprintf('... MISSING OBSERVED DATA for station: %s\n', char(k));
+            end
         end
         
         DATA_ALL(ii).TIMESERIES = TIMESERIES'; % transpose to vertical
