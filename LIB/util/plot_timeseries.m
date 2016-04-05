@@ -96,12 +96,12 @@ xticks = get(gca,'XTickLabel');
 xlimt  = get(gca, 'Xlim');
 %display(STS.cumtotyrdays(end));
 
-% daystart = datenum(STS.startdate); % GIT issue
-% dayend   = datenum(STS.enddate);   % GIT issue
-% %xlim([daystart dayend]);           % GIT issue
-% % set (gca, 'Xlim', ([0,STS.cumtotyrdays(end)]));
-% set(gca,'XTick',(daystart:xint:dayend)); % GIT issue
-% set(gca,'XTickLabel',xtl);               % GIT issue
+daystart = datenum(STS.startdate); % GIT issue
+dayend   = datenum(STS.enddate);   % GIT issue
+xlim([daystart dayend]);           % GIT issue
+% set (gca, 'Xlim', ([0,STS.cumtotyrdays(end)]));
+set(gca,'XTick',(daystart:xint:dayend)); % GIT issue
+set(gca,'XTickLabel',xtl);               % GIT issue
 
 xlabel('');
 % xlim([0,STS.cumtotyrdays(end)]);
@@ -130,12 +130,18 @@ ylim([aymin aymax]);
 % % LEG = legend(legh, legt,7,'Location','SouthEast');
 % % legend boxoff;
 
-nn = length(INI.MODEL_RUN_DESC)+1;
-NN(1) = {'Observed'};
-NN(2:nn) = INI.MODEL_RUN_DESC(1:nn-1);
+if (INI.INCLUDE_OBSERVED)
+    nn = length(INI.MODEL_RUN_DESC)+1;
+    NN(1) = {'Observed'};
+    NN(2:nn) = INI.MODEL_RUN_DESC(1:nn-1);
+else
+    nn = length(INI.MODEL_RUN_DESC);
+    NN(1:nn) = INI.MODEL_RUN_DESC(1:nn);
+end
 legt = NN;
 
-legend(legt,7,'Location','SouthEast');
+%legend(legt,7,'Location','SouthEast');
+legend(legt,7,'Location','best');
 
 legend boxoff;
 grid on;
@@ -143,18 +149,12 @@ s_title = strcat(char(STATION.NAME));
 title(s_title,'FontSize',10,'FontName','times','Interpreter','none');
 
 grid on;
-try
-    if (STATION.Z_GRID > -1.0e-035)
-        string_ground_level = strcat({'GSE: grid = '}, char(sprintf('%.1f',STATION.Z_GRID)), {' ft'});
-        add_ground_level(0,0.9,STATION.Z_GRID,[188/256 143/256 143/256],2,'--',12,string_ground_level);
-    end
-catch
-    fprintf(' --> ...WARNING: Missing Z_GRID in station %s\n', char(STATION.NAME))
+if (STATION.Z_GRID > -1.0e-035)
+    string_ground_level = strcat({'GSE: grid = '}, char(sprintf('%.1f',STATION.Z_GRID)), {' ft'});
+    add_ground_level(0,0.9,STATION.Z_GRID,[188/256 143/256 143/256],2,'--',12,string_ground_level);
 end
 
 plotfile = strcat(INI.FIGURES_DIR_TS,'/',STATION.NAME);
-F=strcat(plotfile,'.png'); % or use .png
-%exportfig(char(F),'width',12,'height',5, 'FontSize',18);
 print('-dpng',char(plotfile),'-r300')
 if INI.SAVEFIGS; savefig(char(plotfile)); end;
 hold off
