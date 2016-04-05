@@ -6,6 +6,12 @@ run = INI.ANALYSIS_TAG;
 TS.startdate = INI.ANALYZE_DATE_I;  %start  on this date
 TS.enddate = INI.ANALYZE_DATE_F;
 
+endInt= datenum(TS.enddate(1),TS.enddate(2),TS.enddate(3));
+startInt = datenum(TS.startdate(1),TS.startdate(2),TS.startdate(3));
+if (endInt - startInt) < 1098
+    fprintf('\n\n ** WARNING IN A3a_boxmatEXP: TIME INTERVAL TOO SMALL TO PRODUCE BOXPLOTS\n\n');
+end
+
 rundir = [INI.ANALYSIS_DIR '/' run '/'];
 figdir = [rundir 'figures/boxplot/'];
 if ~exist(figdir,'file'),      mkdir(figdir), end  %Create a figures dir in output
@@ -152,18 +158,14 @@ for cntTS = 1:shownumTS
     %boxMTH = boxplot(OUT(cntTS).permthave,'colors',char(colorts(cntTS)),'notch','off','positions',positionMTH,'width',wdth);
     %         boxMTH = boxplot(OUT(cntTS).permthave,'notch','off','whisker',1)
     set(gca,'XTickLabel',{' '})  % Erase xlabels
-    boxMTH = boxplot(OUT(cntTS).permthave,'colors',char(colorts(cntTS)),...
-        'notch','on','whisker',1,'positions',positionMTH,'width',wdth,...
-        'labels',{'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'});
+    boxMTH = boxplot(OUT(cntTS).permthave,'colors',char(colorts(cntTS)),'notch','on','whisker',1,'positions',positionMTH,'width',wdth,'labels',{'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'});
     hold on  % Keep the fig for overlap
     plot(NaN,1,'color',char(colorts(cntTS))); %// dummy plot for legend
 end
 
 if INI.INCLUDE_OBSERVED
     positionMTH = 1+pos(numTS):1:12+pos(numTS);    % Define position for 12 Month boxplots
-    boxMTH = boxplot(OUT(numTS).permthave,'colors',char(INI.GRAPHICS_CO(1)),...
-        'notch','on','whisker',1,'positions',positionMTH,'width',wdth,...
-        'labels',{'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'});
+    boxMTH = boxplot(OUT(numTS).permthave,'colors',char(INI.GRAPHICS_CO(1)),'notch','on','whisker',1,'positions',positionMTH,'width',wdth,'labels',{'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'});
     plot(NaN,1,'color',char(INI.GRAPHICS_CO(1))); %// dummy plot for legend
 end;
 
