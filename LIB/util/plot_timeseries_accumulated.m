@@ -24,6 +24,7 @@ v3 changes: adjusted the start date of the accumulation to the start of the obse
    also changed y-axis label and plot title
 %}
 %----------------------------------------
+fprintf('\n\tAccumulated timeseries plot: %s',  char(STATION.NAME))
 
 %conversion from cfs to kaf/day
 CFS_KAFDY = 0.001982;
@@ -121,12 +122,18 @@ end
 title(STATION.NAME,'FontSize',10,'FontName','Times New Roman','Interpreter','none');
 
 ylabel('Cumulative discharge, Kaf');
-nn = length(INI.MODEL_RUN_DESC)+1;
-NN(1) = {'Observed'};
-NN(2:nn) = INI.MODEL_RUN_DESC(1:nn-1);
+if (INI.INCLUDE_OBSERVED)
+    nn = length(INI.MODEL_RUN_DESC)+1;
+    NN(1) = {'Observed'};
+    NN(2:nn) = INI.MODEL_RUN_DESC(1:nn-1);
+else
+    nn = length(INI.MODEL_RUN_DESC);
+    NN(1:nn) = INI.MODEL_RUN_DESC(1:nn);
+end
 legt = NN;
 
-legend(legt,7,'Location','SouthEast');
+%legend(legt,7,'Location','SouthEast');
+legend(legt,7,'Location','best');
 
 xlabel('');
 % xlim([0,length(TS.Time)-1]);
@@ -145,19 +152,17 @@ xticks = get(gca,'XTickLabel');
 xlimt  = get(gca, 'Xlim');
 %display(STS.cumtotyrdays(end));
 
-% daystart = datenum(STS.startdate);
-% dayend   = datenum(STS.enddate);
-% xlim([daystart dayend]);
-% % set (gca, 'Xlim', ([0,STS.cumtotyrdays(end)]))
-% set(gca,'XTick',(daystart:xint:dayend));
-% set(gca,'XTickLabel',xtl);
+daystart = datenum(STS.startdate);
+dayend   = datenum(STS.enddate);
+xlim([daystart dayend]);
+% set (gca, 'Xlim', ([0,STS.cumtotyrdays(end)]))
+set(gca,'XTick',(daystart:xint:dayend));
+set(gca,'XTickLabel',xtl);
 
 grid on;
 legend boxoff;
 
 plotfile = strcat(INI.FIGURES_DIR_TS,'/',STATION.NAME,'-acc');
-F=strcat(plotfile,'.png'); % or use .png
-%exportfig(char(F),'width',12,'height',5, 'FontSize',18);
 print('-dpng',char(plotfile),'-r300')
 % % saveas(gcf,char(FIGURE_FILE),'bmp');
 % % save2pdf(char(FIGURE_FILE),gcf,600);
