@@ -53,13 +53,13 @@ remove(TS.MAPDATA,1);
 %TS.DATA(1:TS.S.nsteps) = DATA;
 
 VUNIQUE = unique(SEEPAGEMAP)';
-a = size(VUNIQUE)
+a = size(VUNIQUE);
 
 i1 = TS.S.TSTART; % length of time vector
 i2 = a(2); % length of extracted cells
 i3 = TS.S.z; % codes of extracted cells
 
-nsteps = datenum(INI.ANALYZE_DATE_F) - datenum(INI.ANALYZE_DATE_I) + 1
+nsteps = datenum(INI.ANALYZE_DATE_F) - datenum(INI.ANALYZE_DATE_I) + 1;
 VU_DFS3(1:nsteps,1:i2-1) = 0;
 
 n_diff = datenum(INI.ANALYZE_DATE_I) - i1;
@@ -73,22 +73,38 @@ if i_1 < 0
     i_1 = 0; % if i_1 > 0, then this is the pointeer where to store datain VU_DFS3 array
 end 
 
+fprintf('... Reading Seepage Values from %s\n',char(DF));
+toggle1 = 1;
+toggle2 = 1;
 for i=0:TS.S.nsteps-1
     %ds = datestr(TIME(i,:),2);
     %fprintf('%s %s %i %s %i\n', ds, ' Step: ', i+1, '/', TS.S.nsteps);
     %HARDWIRED to item 3
     T = T + 1;
     ds = datestr(T);
-    
     if T < datenum(INI.ANALYZE_DATE_I) || T > datenum(INI.ANALYZE_DATE_F) -1
         %skip reading too many values that are more than requested period
-        fprintf('... Skipping values %s: %s: %s %i %s %i\n',char(DF), ds, ' Step: ', i+1, '/', TS.S.nsteps)
+        if toggle2
+            fprintf('\n... Skipping values %s: %s: %s %i %s %i',char(DF), ds, ' Step: ', i+1, '/', TS.S.nsteps);
+            toggle2 = 0;
+            toggle1 = 1;
+        end
         continue
+    end
+    if toggle1
+        fprintf('\n... Reading values %s: %s: %s %i %s %i',char(DF), ds, ' Step: ', i+1, '/', TS.S.nsteps);
+        toggle1 = 0;
     end
     
     i_1 = i_1+1;
     
-    fprintf('... Reading Seepage Values from %s: %s: %s %i %s %i\n',char(DF), ds, ' Step: ', i+1, '/', TS.S.nsteps)
+%    fprintf('... Reading Seepage Values from %s: %s: %s %i %s %i\n',char(DF), ds, ' Step: ', i+1, '/', TS.S.nsteps)
+    if mod(i,10) == 0
+        fprintf('.');
+    end
+    if mod(i,366) == 0
+        fprintf('\n... now on step %i%s%i:: %s ::and counting',i+1, '/', TS.S.nsteps, ds);
+    end
     D_X = double(TS.S.dfs2.ReadItemTimeStep(1,i).To3DArray());
     D_Y = double(TS.S.dfs2.ReadItemTimeStep(2,i).To3DArray());
     DATAZ = double(TS.S.dfs2.ReadItemTimeStep(3,i).To3DArray());
@@ -148,6 +164,7 @@ for i=0:TS.S.nsteps-1
         end
     end
 end
+fprintf('\n');
 
 RETURN_VU = VU_DFS3;
 
