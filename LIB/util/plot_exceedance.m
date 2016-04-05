@@ -56,7 +56,7 @@ fig = clf;
 
 legnd1 = '';
 
-if (INI.INCLUDE_OBSERVED == 'YES')
+if INI.INCLUDE_OBSERVED
     % plot observed as the first item
     DMATRIX = MAP_NAN(char(MAP_KEYS(1))).TS;
     if ~isempty(DMATRIX)
